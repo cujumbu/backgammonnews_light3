@@ -1,0 +1,60 @@
+---
+interface Props {
+  article: {
+    title: string;
+    link: string;
+    contentSnippet: string;
+    source: string;
+    pubDate: string;
+  };
+}
+
+const { article } = Astro.props;
+const date = new Date(article.pubDate);
+---
+
+<section class="mb-12">
+  <div class="relative overflow-hidden bg-white rounded-2xl shadow-xl border border-gray-200/50 group">
+    <div class="absolute inset-0 bg-gradient-to-br from-accent/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+    <div class="p-8 md:p-12">
+      <div class="flex items-center gap-4 mb-6">
+        <span class="px-4 py-2 bg-accent text-white rounded-full text-sm font-medium shadow-lg shadow-accent/20">
+          Featured
+        </span>
+        <span class="px-4 py-2 bg-accent/10 text-accent rounded-full text-sm font-medium">
+          {article.source}
+        </span>
+      </div>
+      <h2 class="text-3xl md:text-4xl font-display font-bold mb-6 leading-tight group-hover:text-accent transition-colors duration-300">
+        <a href={article.link} target="_blank" rel="noopener noreferrer">
+          {article.title}
+        </a>
+      </h2>
+      <p class="text-gray-600 text-lg mb-6 line-clamp-3">
+        {article.contentSnippet}
+      </p>
+      <div class="flex items-center justify-between">
+        <time class="text-gray-500" datetime={date.toISOString()}>
+          {date.toLocaleDateString('en-US', {
+            month: 'long',
+            day: 'numeric',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          })}
+        </time>
+        <a
+          href={article.link}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center gap-2 px-6 py-3 bg-accent text-white rounded-full font-medium shadow-lg shadow-accent/20 hover:bg-accent-dark transition-colors duration-300"
+        >
+          Read Full Article
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,27 @@
+---
+const categories = ['All', 'USBGF', 'WBGF', 'UKBGF'];
+---
+
+<div class="flex items-center gap-4 overflow-x-auto py-4 scrollbar-hide">
+  {categories.map((category, index) => (
+    <button
+      class={`px-6 py-2.5 rounded-full font-medium text-sm transition-all duration-300 ${
+        index === 0
+          ? 'bg-accent text-white shadow-lg shadow-accent/20'
+          : 'bg-white text-gray-600 hover:bg-accent/10 hover:text-accent'
+      }`}
+    >
+      {category}
+    </button>
+  ))}
+</div>
+
+<style>
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+</style>

@@ -1,0 +1,30 @@
+---
+interface Props {
+  title: string;
+  value: string | number;
+  icon: string;
+  trend?: string;
+}
+
+const { title, value, icon, trend } = Astro.props;
+---
+
+<div class="bg-white rounded-xl p-6 border border-gray-200/50 shadow-sm hover:shadow-md transition-all duration-300">
+  <div class="flex items-start justify-between mb-4">
+    <div>
+      <p class="text-sm font-medium text-gray-600 mb-1">{title}</p>
+      <p class="text-2xl font-display font-semibold text-gray-900">{value}</p>
+      {trend && (
+        <p class="text-xs text-accent mt-1 font-medium">
+          {trend}
+        </p>
+      )}
+    </div>
+    <div class="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center">
+      <span class="text-2xl" role="img" aria-label={title}>{icon}</span>
+    </div>
+  </div>
+  <div class="mt-2 w-full bg-gray-100 h-1.5 rounded-full overflow-hidden">
+    <div class="bg-gradient-to-r from-accent to-accent-dark h-full w-full animate-pulse"></div>
+  </div>
+</div>
