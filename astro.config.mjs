@@ -2,17 +2,14 @@ import { defineConfig } from 'astro/config';
 import tailwind from '@astrojs/tailwind';
 import node from "@astrojs/node";
 
-// Get port from environment variable or default to 10000
-const PORT = process.env.PORT || 10000;
-
 export default defineConfig({
   output: 'server',
   adapter: node({
     mode: "standalone"
   }),
   server: {
-    port: PORT,
-    host: '0.0.0.0'
+    host: process.env.NODE_ENV === 'production' ? '0.0.0.0' : 'localhost',
+    port: process.env.PORT || 10000
   },
   integrations: [tailwind()]
 });
