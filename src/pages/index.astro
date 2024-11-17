@@ -5,7 +5,11 @@ import StatsCard from '../components/StatsCard.astro';
 import NewsCard from '../components/NewsCard.astro';
 import FeaturedNews from '../components/FeaturedNews.astro';
 import CategoryFilter from '../components/CategoryFilter.astro';
+import SearchBar from '../components/SearchBar';
+import NewsletterSignup from '../components/NewsletterSignup';
+import ShareButtons from '../components/ShareButtons';
 
+// Fetch and process news
 const allNews = await fetchAllFeeds();
 const stats = {
   totalArticles: allNews.length,
@@ -17,11 +21,32 @@ const stats = {
 const featuredArticle = allNews.find(article => article.imageUrl);
 const remainingNews = allNews.filter(article => article !== featuredArticle);
 
-// Get the selected category from URL params
-const { category = 'All' } = Astro.url.searchParams;
-const filteredNews = category === 'All' 
+// Get the selected category and search query from URL params
+const { category = 'All', q: searchQuery = '' } = Astro.url.searchParams;
+
+// Filter news based on category and search query
+let filteredNews = category === 'All' 
   ? remainingNews 
   : remainingNews.filter(item => item.source === category);
+
+if (searchQuery) {
+  const query = searchQuery.toLowerCase();
+  filteredNews = filteredNews.filter(item => 
+    item.title.toLowerCase().includes(query) || 
+    item.contentSnippet.toLowerCase().includes(query)
+  );
+}
+
+// Client-side search handler
+const handleSearch = (query: string) => {
+  const url = new URL(window.location.href);
+  if (query) {
+    url.searchParams.set('q', query);
+  } else {
+    url.searchParams.delete('q');
+  }
+  window.location.href = url.toString();
+};
 ---
 
 <Layout title="Backgammon News - Latest Updates from the Backgammon World">
@@ -49,6 +74,8 @@ const filteredNews = category === 'All'
   </header>
 
   <main class="container mx-auto px-4 py-8">
+    <SearchBar client:load onSearch={handleSearch} />
+
     <section class="mb-12 animate-fade-in">
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <StatsCard
@@ -81,25 +108,47 @@ const filteredNews = category === 'All'
 
     <CategoryFilter selectedCategory={category} />
 
-    <section class="space-y-8 mt-12">
-      <div class="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-        {filteredNews.map((item, index) => (
-          <div class="animate-slide-up" style={`animation-delay: ${index * 0.1}s`}>
-            <NewsCard
-              title={item.title}
-              link={item.link}
-              date={new Date(item.pubDate)}
-              source={item.source}
-              description={item.contentSnippet}
-              imageUrl={item.imageUrl}
-              author={item.author}
-              readingTime={item.readingTime}
-              categories={item.categories}
-            />
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-8 mt-12">
+      <div class="lg:col-span-3">
+        <section class="space-y-8">
+          <div class="grid gap-8 md:grid-cols-2">
+            {filteredNews.map((item, index) => (
+              <div class="animate-slide-up" style={`animation-delay: ${index * 0.1}s`}>
+                <NewsCard
+                  title={item.title}
+                  link={item.link}
+                  date={new Date(item.pubDate)}
+                  source={item.source}
+                  description={item.contentSnippet}
+                  imageUrl={item.imageUrl}
+                  author={item.author}
+                  readingTime={item.readingTime}
+                  categories={item.categories}
+                />
+                <div class="mt-4">
+                  <ShareButtons url={item.link} title={item.title} client:load />
+                </div>
+              </div>
+            ))}
           </div>
-        ))}
+        </section>
       </div>
-    </section>
+      
+      <div class="lg:col-span-1 space-y-8">
+        <NewsletterSignup client:load />
+        
+        <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200/50">
+          <h3 class="text-xl font-display font-semibold mb-4">Popular Tags</h3>
+          <div class="flex flex-wrap gap-2">
+            {[...new Set(allNews.flatMap(item => item.categories || []))].slice(0, 10).map(tag => (
+              <span class="px-3 py-1.5 bg-gray-100 text-gray-600 rounded-full text-sm">
+                {tag}
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
   </main>
 
   <footer class="border-t border-gray-200/30 py-8 mt-16 bg-white/50 backdrop-blur-sm">
