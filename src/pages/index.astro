@@ -6,15 +6,22 @@ import NewsCard from '../components/NewsCard.astro';
 import FeaturedNews from '../components/FeaturedNews.astro';
 import CategoryFilter from '../components/CategoryFilter.astro';
 
-const news = await fetchAllFeeds();
+const allNews = await fetchAllFeeds();
 const stats = {
-  totalArticles: news.length,
-  sources: [...new Set(news.map(item => item.source))].length,
-  latestUpdate: news[0]?.pubDate ? new Date(news[0].pubDate) : new Date(),
+  totalArticles: allNews.length,
+  sources: [...new Set(allNews.map(item => item.source))].length,
+  latestUpdate: allNews[0]?.pubDate ? new Date(allNews[0].pubDate) : new Date(),
 };
 
-const featuredArticle = news[0];
-const remainingNews = news.slice(1);
+// Find the latest article that has an image
+const featuredArticle = allNews.find(article => article.imageUrl);
+const remainingNews = allNews.filter(article => article !== featuredArticle);
+
+// Get the selected category from URL params
+const { category = 'All' } = Astro.url.searchParams;
+const filteredNews = category === 'All' 
+  ? remainingNews 
+  : remainingNews.filter(item => item.source === category);
 ---
 
 <Layout title="Backgammon News - Latest Updates from the Backgammon World">
@@ -72,11 +79,11 @@ const remainingNews = news.slice(1);
 
     {featuredArticle && <FeaturedNews article={featuredArticle} />}
 
-    <CategoryFilter />
+    <CategoryFilter selectedCategory={category} />
 
     <section class="space-y-8 mt-12">
       <div class="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-        {remainingNews.map((item, index) => (
+        {filteredNews.map((item, index) => (
           <div class="animate-slide-up" style={`animation-delay: ${index * 0.1}s`}>
             <NewsCard
               title={item.title}
@@ -84,6 +91,10 @@ const remainingNews = news.slice(1);
               date={new Date(item.pubDate)}
               source={item.source}
               description={item.contentSnippet}
+              imageUrl={item.imageUrl}
+              author={item.author}
+              readingTime={item.readingTime}
+              categories={item.categories}
             />
           </div>
         ))}
@@ -121,3 +132,22 @@ const remainingNews = news.slice(1);
     </div>
   </footer>
 </Layout>
+
+<script>
+  // Handle category filter clicks
+  document.addEventListener('DOMContentLoaded', () => {
+    const buttons = document.querySelectorAll('[data-category]');
+    buttons.forEach(button => {
+      button.addEventListener('click', (e) => {
+        const category = (e.target as HTMLElement).dataset.category;
+        const url = new URL(window.location.href);
+        if (category === 'All') {
+          url.searchParams.delete('category');
+        } else {
+          url.searchParams.set('category', category);
+        }
+        window.location.href = url.toString();
+      });
+    });
+  });
+</script>
