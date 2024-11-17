@@ -1,17 +1,32 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface SearchBarProps {
   onSearch: (query: string) => void;
+  initialQuery?: string;
 }
 
-export default function SearchBar({ onSearch }: SearchBarProps) {
-  const [query, setQuery] = useState('');
+export default function SearchBar({ onSearch, initialQuery = '' }: SearchBarProps) {
+  const [query, setQuery] = useState(initialQuery);
+
+  useEffect(() => {
+    // Update query when URL parameter changes
+    const urlParams = new URLSearchParams(window.location.search);
+    const searchQuery = urlParams.get('q') || '';
+    setQuery(searchQuery);
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSearch(query);
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setQuery(e.target.value);
+    if (e.target.value === '') {
+      onSearch(''); // Clear search when input is empty
+    }
   };
 
   return (
@@ -20,7 +35,7 @@ export default function SearchBar({ onSearch }: SearchBarProps) {
         <input
           type="text"
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={handleChange}
           placeholder="Search articles..."
           className="w-full px-4 py-3 pl-12 bg-white rounded-xl border border-gray-200/50 shadow-sm focus:ring-2 focus:ring-accent focus:border-transparent outline-none transition-all duration-300"
         />
