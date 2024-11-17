@@ -1,23 +1,23 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { useBookmarkStore } from '../store/bookmarkStore';
 
-interface BookmarksDrawerProps {
-  isOpen: boolean;
-  onClose: () => void;
-  bookmarkedArticles: Array<{
-    id: string;
-    title: string;
-    link: string;
-    date: string;
-  }>;
-}
+export default function BookmarksDrawer() {
+  const [isOpen, setIsOpen] = useState(false);
+  const { bookmarks } = useBookmarkStore();
+  const [bookmarkedArticles, setBookmarkedArticles] = useState([]);
 
-export default function BookmarksDrawer({ isOpen, onClose, bookmarkedArticles }: BookmarksDrawerProps) {
+  useEffect(() => {
+    const button = document.getElementById('bookmarks-button');
+    if (button) {
+      button.addEventListener('click', () => setIsOpen(true));
+    }
+  }, []);
+
   return (
     <Transition.Root show={isOpen} as={React.Fragment}>
-      <Dialog as="div" className="relative z-50" onClose={onClose}>
+      <Dialog as="div" className="relative z-50" onClose={() => setIsOpen(false)}>
         <Transition.Child
           as={React.Fragment}
           enter="ease-in-out duration-500"
@@ -52,30 +52,19 @@ export default function BookmarksDrawer({ isOpen, onClose, bookmarkedArticles }:
                         <button
                           type="button"
                           className="rounded-md text-gray-400 hover:text-gray-500"
-                          onClick={onClose}
+                          onClick={() => setIsOpen(false)}
                         >
                           <XMarkIcon className="h-6 w-6" />
                         </button>
                       </div>
                     </div>
                     <div className="relative flex-1 px-4 sm:px-6 py-6">
-                      {bookmarkedArticles.length > 0 ? (
+                      {bookmarks && bookmarks.length > 0 ? (
                         <div className="space-y-4">
-                          {bookmarkedArticles.map((article) => (
-                            <a
-                              key={article.id}
-                              href={article.link}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="block p-4 rounded-lg bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                            >
-                              <h3 className="font-medium text-gray-900 dark:text-white mb-2">
-                                {article.title}
-                              </h3>
-                              <time className="text-sm text-gray-500 dark:text-gray-400">
-                                {new Date(article.date).toLocaleDateString()}
-                              </time>
-                            </a>
+                          {bookmarks.map((articleId) => (
+                            <div key={articleId} className="p-4 rounded-lg bg-gray-50 dark:bg-gray-800">
+                              <p className="text-gray-900 dark:text-white">Article ID: {articleId}</p>
+                            </div>
                           ))}
                         </div>
                       ) : (
