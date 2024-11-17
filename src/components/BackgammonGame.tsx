@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import pkg from 'tsgammon-core';
-const { boardStateNodeFromArray, collectMoves } = pkg;
+const { boardStateNodeFromArray, collectMoves, boardStateNode, boardState, diceRoll } = pkg;
 
 export default function BackgammonGame() {
   const [gameState, setGameState] = useState<any>(null);
@@ -14,12 +14,7 @@ export default function BackgammonGame() {
   }, []);
 
   const initializeGame = () => {
-    const initialState = boardStateNodeFromArray([
-      0, // bar point
-      2,0,0,0,0,-5, 0,-3,0,0,0,5,
-      -5,0,0,0,3,0,5,0,0,0,0,-2,
-      0  // opponent's bar point
-    ], dice[0], dice[1]);
+    const initialState = boardStateNode(boardState(), diceRoll(dice[0], dice[1]));
     setGameState(initialState);
     setSelectedPoint(null);
     setLegalMoves([]);
@@ -57,16 +52,21 @@ export default function BackgammonGame() {
     
     if (point !== null) {
       if (selectedPoint === null) {
-        setSelectedPoint(point);
-        const moves = collectMoves(gameState)
-          .filter(move => !move.isRedundant)
-          .flatMap(move => move.moves)
-          .filter(move => move.from === point);
-        setLegalMoves(moves);
+        if (gameState.board.points[point] > 0) {
+          setSelectedPoint(point);
+          const moves = collectMoves(gameState)
+            .filter(move => !move.isRedundant)
+            .flatMap(move => move.moves)
+            .filter(move => move.from === point);
+          setLegalMoves(moves);
+        }
       } else {
         const move = legalMoves.find(m => m.to === point);
         if (move) {
-          const newState = gameState.makeMove(move);
+          const newState = boardStateNode(
+            gameState.board.makeMove(move),
+            diceRoll(dice[0], dice[1])
+          );
           setGameState(newState);
         }
         setSelectedPoint(null);
@@ -79,13 +79,10 @@ export default function BackgammonGame() {
     const dice1 = Math.floor(Math.random() * 6) + 1;
     const dice2 = Math.floor(Math.random() * 6) + 1;
     setDice([dice1, dice2]);
-    const newState = boardStateNodeFromArray(
-      gameState ? gameState.board.points : [
-        0,2,0,0,0,0,-5,0,-3,0,0,0,5,
-        -5,0,0,0,3,0,5,0,0,0,0,-2,0
-      ],
-      dice1,
-      dice2
+    
+    const newState = boardStateNode(
+      gameState ? gameState.board : boardState(),
+      diceRoll(dice1, dice2)
     );
     setGameState(newState);
     setSelectedPoint(null);
@@ -153,14 +150,12 @@ export default function BackgammonGame() {
     const startY = height / 2 - diceSize / 2;
 
     const drawDie = (x: number, y: number, value: number) => {
-      // Die background
       ctx.fillStyle = 'white';
       ctx.strokeStyle = '#000';
       ctx.lineWidth = 2;
       ctx.fillRect(x, y, diceSize, diceSize);
       ctx.strokeRect(x, y, diceSize, diceSize);
 
-      // Dots
       ctx.fillStyle = 'black';
       const dotSize = 6;
       const positions = {
@@ -207,7 +202,6 @@ export default function BackgammonGame() {
     const pointWidth = (width - 20) / 12;
     const pointHeight = height * 0.4;
     
-    // Adjust x for the bar
     if (x > width / 2 - 10 && x < width / 2 + 10) return null;
     const adjustedX = x > width / 2 ? x - 20 : x;
     
