@@ -39,17 +39,6 @@ if (searchQuery) {
     item.contentSnippet.toLowerCase().includes(query)
   );
 }
-
-// Client-side search handler
-const handleSearch = `(query) => {
-  const url = new URL(window.location.href);
-  if (query) {
-    url.searchParams.set('q', query);
-  } else {
-    url.searchParams.delete('q');
-  }
-  window.location.href = url.toString();
-}`;
 ---
 
 <Layout title="Backgammon News - Latest Updates from the Backgammon World">
@@ -84,7 +73,15 @@ const handleSearch = `(query) => {
 
     <SearchBar 
       client:load 
-      onSearch={handleSearch} 
+      onSearch={`(query) => {
+        const url = new URL(window.location.href);
+        if (query) {
+          url.searchParams.set('q', query);
+        } else {
+          url.searchParams.delete('q');
+        }
+        window.location.href = url.toString();
+      }`}
       initialQuery={searchQuery} 
     />
 
