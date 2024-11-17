@@ -15,6 +15,7 @@ const FEEDS = [
 ];
 
 function extractFirstImage(content: string): string | null {
+  if (!content) return null;
   try {
     const $ = cheerio.load(content);
     const firstImg = $('img').first();
@@ -25,11 +26,14 @@ function extractFirstImage(content: string): string | null {
 }
 
 function cleanContent(content: string): string {
-  const $ = cheerio.load(content);
-  // Remove scripts, styles, and iframes
-  $('script, style, iframe').remove();
-  // Get text content
-  return $.text().trim();
+  if (!content) return '';
+  try {
+    const $ = cheerio.load(content);
+    $('script, style, iframe').remove();
+    return $.text().trim();
+  } catch {
+    return content.replace(/<[^>]*>/g, '').trim();
+  }
 }
 
 export async function fetchAllFeeds() {
@@ -90,7 +94,7 @@ export async function fetchAllFeeds() {
             imageUrl,
             categories: item.categories || [],
             author: item.creator || item.author || 'Unknown',
-            readingTime: Math.ceil(cleanedContent.split(/\s+/).length / 200) // Assuming 200 words per minute
+            readingTime: Math.ceil(cleanedContent.split(/\s+/).length / 200)
           };
         }));
         
