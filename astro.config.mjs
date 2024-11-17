@@ -14,12 +14,10 @@ export default defineConfig({
   },
   vite: {
     ssr: {
-      noExternal: ['cheerio', 'parse5']
+      noExternal: ['cheerio', 'parse5', 'parse5-htmlparser2-tree-adapter']
     },
-    build: {
-      rollupOptions: {
-        external: ['node:https']
-      }
+    optimizeDeps: {
+      exclude: ['node:https']
     }
   }
 });
