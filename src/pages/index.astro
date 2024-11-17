@@ -9,6 +9,11 @@ import SearchBar from '../components/SearchBar';
 import NewsletterSignup from '../components/NewsletterSignup';
 import ShareButtons from '../components/ShareButtons';
 
+// Get URL parameters
+const { searchParams } = Astro.url;
+const category = searchParams.get('category') || 'All';
+const searchQuery = searchParams.get('q') || '';
+
 // Fetch and process news
 const allNews = await fetchAllFeeds();
 const stats = {
@@ -20,9 +25,6 @@ const stats = {
 // Find the latest article that has an image
 const featuredArticle = allNews.find(article => article.imageUrl);
 const remainingNews = allNews.filter(article => article !== featuredArticle);
-
-// Get the selected category and search query from URL params
-const { category = 'All', q: searchQuery = '' } = Astro.url.searchParams;
 
 // Filter news based on category and search query
 let filteredNews = category === 'All' 
@@ -38,7 +40,7 @@ if (searchQuery) {
 }
 
 // Client-side search handler
-const handleSearch = (query: string) => {
+const handleSearch = `(query) => {
   const url = new URL(window.location.href);
   if (query) {
     url.searchParams.set('q', query);
@@ -46,7 +48,7 @@ const handleSearch = (query: string) => {
     url.searchParams.delete('q');
   }
   window.location.href = url.toString();
-};
+}`;
 ---
 
 <Layout title="Backgammon News - Latest Updates from the Backgammon World">
@@ -74,7 +76,11 @@ const handleSearch = (query: string) => {
   </header>
 
   <main class="container mx-auto px-4 py-8">
-    <SearchBar client:load onSearch={handleSearch} />
+    <SearchBar 
+      client:load 
+      onSearch={handleSearch} 
+      initialQuery={searchQuery} 
+    />
 
     <section class="mb-12 animate-fade-in">
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -111,26 +117,38 @@ const handleSearch = (query: string) => {
     <div class="grid grid-cols-1 lg:grid-cols-4 gap-8 mt-12">
       <div class="lg:col-span-3">
         <section class="space-y-8">
-          <div class="grid gap-8 md:grid-cols-2">
-            {filteredNews.map((item, index) => (
-              <div class="animate-slide-up" style={`animation-delay: ${index * 0.1}s`}>
-                <NewsCard
-                  title={item.title}
-                  link={item.link}
-                  date={new Date(item.pubDate)}
-                  source={item.source}
-                  description={item.contentSnippet}
-                  imageUrl={item.imageUrl}
-                  author={item.author}
-                  readingTime={item.readingTime}
-                  categories={item.categories}
-                />
-                <div class="mt-4">
-                  <ShareButtons url={item.link} title={item.title} client:load />
+          {filteredNews.length > 0 ? (
+            <div class="grid gap-8 md:grid-cols-2">
+              {filteredNews.map((item, index) => (
+                <div class="animate-slide-up" style={`animation-delay: ${index * 0.1}s`}>
+                  <NewsCard
+                    title={item.title}
+                    link={item.link}
+                    date={new Date(item.pubDate)}
+                    source={item.source}
+                    description={item.contentSnippet}
+                    imageUrl={item.imageUrl}
+                    author={item.author}
+                    readingTime={item.readingTime}
+                    categories={item.categories}
+                  />
+                  <div class="mt-4">
+                    <ShareButtons url={item.link} title={item.title} client:load />
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <div class="text-center py-12">
+              <p class="text-gray-600 text-lg">No articles found matching your search criteria.</p>
+              <button
+                onclick="window.location.href = window.location.pathname;"
+                class="mt-4 px-6 py-2 bg-accent text-white rounded-lg hover:bg-accent-dark transition-colors duration-300"
+              >
+                Clear Filters
+              </button>
+            </div>
+          )}
         </section>
       </div>
       
