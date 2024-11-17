@@ -6,6 +6,10 @@ interface Props {
     contentSnippet: string;
     source: string;
     pubDate: string;
+    imageUrl?: string;
+    author?: string;
+    readingTime?: number;
+    categories?: string[];
   };
 }
 
@@ -16,44 +20,73 @@ const date = new Date(article.pubDate);
 <section class="mb-12">
   <div class="relative overflow-hidden bg-white rounded-2xl shadow-xl border border-gray-200/50 group">
     <div class="absolute inset-0 bg-gradient-to-br from-accent/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-    <div class="p-8 md:p-12">
-      <div class="flex items-center gap-4 mb-6">
-        <span class="px-4 py-2 bg-accent text-white rounded-full text-sm font-medium shadow-lg shadow-accent/20">
-          Featured
-        </span>
-        <span class="px-4 py-2 bg-accent/10 text-accent rounded-full text-sm font-medium">
-          {article.source}
-        </span>
-      </div>
-      <h2 class="text-3xl md:text-4xl font-display font-bold mb-6 leading-tight group-hover:text-accent transition-colors duration-300">
-        <a href={article.link} target="_blank" rel="noopener noreferrer">
-          {article.title}
-        </a>
-      </h2>
-      <p class="text-gray-600 text-lg mb-6 line-clamp-3">
-        {article.contentSnippet}
-      </p>
-      <div class="flex items-center justify-between">
-        <time class="text-gray-500" datetime={date.toISOString()}>
-          {date.toLocaleDateString('en-US', {
-            month: 'long',
-            day: 'numeric',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-          })}
-        </time>
-        <a
-          href={article.link}
-          target="_blank"
-          rel="noopener noreferrer"
-          class="inline-flex items-center gap-2 px-6 py-3 bg-accent text-white rounded-full font-medium shadow-lg shadow-accent/20 hover:bg-accent-dark transition-colors duration-300"
-        >
-          Read Full Article
-          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M5 12h14M12 5l7 7-7 7"/>
-          </svg>
-        </a>
+    
+    <div class="grid md:grid-cols-2 gap-8">
+      {article.imageUrl ? (
+        <div class="relative h-[400px] md:h-full overflow-hidden">
+          <img 
+            src={article.imageUrl} 
+            alt={article.title}
+            class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500"
+          />
+          <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+        </div>
+      ) : null}
+      
+      <div class={`p-8 md:p-12 ${!article.imageUrl ? 'md:col-span-2' : ''}`}>
+        <div class="flex flex-wrap items-center gap-4 mb-6">
+          <span class="px-4 py-2 bg-accent text-white rounded-full text-sm font-medium shadow-lg shadow-accent/20">
+            Featured
+          </span>
+          <span class="px-4 py-2 bg-accent/10 text-accent rounded-full text-sm font-medium">
+            {article.source}
+          </span>
+          {article.categories?.slice(0, 2).map(category => (
+            <span class="px-4 py-2 bg-gray-100 text-gray-600 rounded-full text-sm">
+              {category}
+            </span>
+          ))}
+        </div>
+
+        <h2 class="text-3xl md:text-4xl font-display font-bold mb-6 leading-tight group-hover:text-accent transition-colors duration-300">
+          <a href={article.link} target="_blank" rel="noopener noreferrer" class="hover:underline">
+            {article.title}
+          </a>
+        </h2>
+
+        <p class="text-gray-600 text-lg mb-6 line-clamp-3">
+          {article.contentSnippet}
+        </p>
+
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-4">
+            <div class="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center">
+              <span class="text-accent font-medium">{(article.author || 'Unknown').charAt(0)}</span>
+            </div>
+            <div>
+              <p class="font-medium text-gray-900">{article.author || 'Unknown'}</p>
+              <time class="text-sm text-gray-500" datetime={date.toISOString()}>
+                {date.toLocaleDateString('en-US', {
+                  month: 'long',
+                  day: 'numeric',
+                  year: 'numeric'
+                })}
+              </time>
+            </div>
+          </div>
+
+          <a
+            href={article.link}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center gap-2 px-6 py-3 bg-accent text-white rounded-full font-medium shadow-lg shadow-accent/20 hover:bg-accent-dark transition-colors duration-300"
+          >
+            Read Full Article
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
+          </a>
+        </div>
       </div>
     </div>
   </div>
