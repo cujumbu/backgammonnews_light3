@@ -1,0 +1,43 @@
+{
+  "name": "backgammon-news",
+  "type": "module",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "dev": "astro dev",
+    "start": "PORT=${PORT:-10000} node ./dist/server/entry.mjs",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/node": "^8.2.1",
+    "@astrojs/react": "^3.0.10",
+    "@astrojs/rss": "^4.0.5",
+    "@astrojs/tailwind": "^5.1.0",
+    "@headlessui/react": "^1.7.18",
+    "@heroicons/react": "^2.1.1",
+    "@tailwindcss/typography": "^0.5.10",
+    "astro": "^4.5.0",
+    "chart.js": "^4.4.1",
+    "cheerio": "1.0.0-rc.12",
+    "date-fns": "^3.3.0",
+    "framer-motion": "^11.0.5",
+    "node-fetch": "^3.3.2",
+    "parse5": "^7.1.2",
+    "parse5-htmlparser2-tree-adapter": "^7.0.0",
+    "react": "^18.2.0",
+    "react-chartjs-2": "^5.2.0",
+    "react-dom": "^18.2.0",
+    "react-loading-skeleton": "^3.4.0",
+    "react-share": "^5.1.0",
+    "reading-time": "^1.5.0",
+    "rss-parser": "^3.13.0",
+    "tailwindcss": "^3.4.1",
+    "tsgammon-core": "^1.0.0",
+    "zustand": "^4.5.1"
+  },
+  "engines": {
+    "node": "18.x"
+  }
+}
