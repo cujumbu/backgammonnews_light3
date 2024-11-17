@@ -7,9 +7,14 @@ export default defineConfig({
   adapter: node({
     mode: "standalone"
   }),
+  integrations: [tailwind()],
   server: {
     host: '0.0.0.0',
     port: Number(process.env.PORT) || 10000
   },
-  integrations: [tailwind()]
+  vite: {
+    ssr: {
+      noExternal: ['cheerio']
+    }
+  }
 });
