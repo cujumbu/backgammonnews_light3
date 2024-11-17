@@ -1,13 +1,36 @@
 import Parser from 'rss-parser';
 import https from 'node:https';
+import * as cheerio from 'cheerio';
 
-const parser = new Parser();
+const parser = new Parser({
+  customFields: {
+    item: ['content:encoded', 'content', 'description']
+  }
+});
 
 const FEEDS = [
   { url: 'https://usbgf.org/feed/', source: 'USBGF' },
   { url: 'https://wbgf.info/news/feed/', source: 'WBGF' },
   { url: 'https://ukbgf.com/blog/feed/', source: 'UKBGF' }
 ];
+
+function extractFirstImage(content: string): string | null {
+  try {
+    const $ = cheerio.load(content);
+    const firstImg = $('img').first();
+    return firstImg.attr('src') || null;
+  } catch {
+    return null;
+  }
+}
+
+function cleanContent(content: string): string {
+  const $ = cheerio.load(content);
+  // Remove scripts, styles, and iframes
+  $('script, style, iframe').remove();
+  // Get text content
+  return $.text().trim();
+}
 
 export async function fetchAllFeeds() {
   const allItems = [];
@@ -19,7 +42,7 @@ export async function fetchAllFeeds() {
           'User-Agent': 'Mozilla/5.0 (compatible; BackgammonNews/1.0;)',
           'Accept': 'application/rss+xml, application/xml, application/atom+xml, text/xml;q=0.9, */*;q=0.8'
         },
-        timeout: 15000 // Increased timeout to 15 seconds
+        timeout: 15000
       }, (response) => {
         if (response.statusCode !== 200) {
           reject(new Error(`Failed to fetch ${url}: ${response.statusCode}`));
@@ -53,14 +76,22 @@ export async function fetchAllFeeds() {
         const rawFeed = await fetchWithTimeout(feed.url);
         const feedContent = await parser.parseString(rawFeed as string);
         
-        const items = feedContent.items.map(item => ({
-          title: item.title || 'Untitled',
-          link: item.link || '#',
-          contentSnippet: item.contentSnippet?.substring(0, 300) || 
-                         item.content?.substring(0, 300) || 
-                         'No description available',
-          source: feed.source,
-          pubDate: new Date(item.pubDate || new Date()).toISOString(),
+        const items = await Promise.all(feedContent.items.map(async item => {
+          const fullContent = item['content:encoded'] || item.content || item.description || '';
+          const imageUrl = extractFirstImage(fullContent);
+          const cleanedContent = cleanContent(fullContent);
+
+          return {
+            title: item.title || 'Untitled',
+            link: item.link || '#',
+            contentSnippet: cleanedContent.substring(0, 300),
+            source: feed.source,
+            pubDate: new Date(item.pubDate || new Date()).toISOString(),
+            imageUrl,
+            categories: item.categories || [],
+            author: item.creator || item.author || 'Unknown',
+            readingTime: Math.ceil(cleanedContent.split(/\s+/).length / 200) // Assuming 200 words per minute
+          };
         }));
         
         console.log(`Found ${items.length} items from ${feed.source}`);
@@ -72,14 +103,12 @@ export async function fetchAllFeeds() {
     })
   );
 
-  // Collect successful results
   results.forEach((result) => {
     if (result.status === 'fulfilled') {
       allItems.push(...result.value);
     }
   });
 
-  // Sort by date, newest first
   return allItems.sort((a, b) => 
     new Date(b.pubDate).getTime() - new Date(a.pubDate).getTime()
   );
