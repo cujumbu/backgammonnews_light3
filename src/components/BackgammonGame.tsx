@@ -1,36 +1,34 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Game, Position, Move } from 'tsgammon-core';
+import pkg from 'tsgammon-core';
+const { Game, boardStateNodeFromArray, collectMoves, formatMove } = pkg;
 
 export default function BackgammonGame() {
-  const [game, setGame] = useState<Game | null>(null);
+  const [gameState, setGameState] = useState<any>(null);
   const [selectedPoint, setSelectedPoint] = useState<number | null>(null);
-  const [legalMoves, setLegalMoves] = useState<Move[]>([]);
+  const [legalMoves, setLegalMoves] = useState<any[]>([]);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
-    if (!game) {
-      const newGame = new Game();
-      setGame(newGame);
+    if (!gameState) {
+      // Initialize with starting position
+      const initialState = boardStateNodeFromArray([
+        0, // bar point
+        2,0,0,0,0,-5, 0,-3,0,0,0,5,
+        -5,0,0,0,3,0,5,0,0,0,0,-2,
+        0  // opponent's bar point
+      ], 1, 1); // Initial dice roll
+      setGameState(initialState);
     }
   }, []);
 
   useEffect(() => {
-    if (game && canvasRef.current) {
+    if (gameState && canvasRef.current) {
       const canvas = canvasRef.current;
       const ctx = canvas.getContext('2d');
       if (ctx) {
-        // Clear canvas
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
-        // Draw board
         drawBoard(ctx, canvas.width, canvas.height);
+        drawPosition(ctx, gameState.board, canvas.width, canvas.height);
         
-        // Draw checkers
-        if (game.position) {
-          drawPosition(ctx, game.position, canvas.width, canvas.height);
-        }
-        
-        // Highlight selected point and legal moves
         if (selectedPoint !== null) {
           highlightPoint(ctx, selectedPoint, canvas.width, canvas.height);
           legalMoves.forEach(move => {
@@ -39,32 +37,28 @@ export default function BackgammonGame() {
         }
       }
     }
-  }, [game, selectedPoint, legalMoves]);
+  }, [gameState, selectedPoint, legalMoves]);
 
   const handleClick = (event: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!game || !canvasRef.current) return;
+    if (!gameState || !canvasRef.current) return;
 
     const canvas = canvasRef.current;
     const rect = canvas.getBoundingClientRect();
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
     
-    // Convert click coordinates to point number (0-23)
     const point = getClickedPoint(x, y, canvas.width, canvas.height);
     
     if (point !== null) {
       if (selectedPoint === null) {
-        // First click - select point if it has checkers
-        if (game.position.hasCheckerAt(point)) {
-          setSelectedPoint(point);
-          setLegalMoves(game.getLegalMoves().filter(move => move.from === point));
-        }
+        setSelectedPoint(point);
+        const moves = collectMoves(gameState);
+        setLegalMoves(moves.filter(move => move.from === point));
       } else {
-        // Second click - attempt to move
         const move = legalMoves.find(m => m.to === point);
         if (move) {
-          game.makeMove(move);
-          setGame(new Game(game.position)); // Force update
+          const newState = gameState.makeMove(move);
+          setGameState(newState);
         }
         setSelectedPoint(null);
         setLegalMoves([]);
@@ -96,13 +90,13 @@ export default function BackgammonGame() {
     }
   };
 
-  const drawPosition = (ctx: CanvasRenderingContext2D, position: Position, width: number, height: number) => {
+  const drawPosition = (ctx: CanvasRenderingContext2D, board: any, width: number, height: number) => {
     const pointWidth = width / 12;
     const checkerSize = pointWidth * 0.8;
     
     for (let point = 0; point < 24; point++) {
-      const count = position.getCheckerCount(point);
-      const color = position.getCheckerColor(point);
+      const count = Math.abs(board.points[point]);
+      const color = board.points[point] > 0 ? 1 : -1;
       
       if (count > 0) {
         const x = (point % 12) * pointWidth + pointWidth / 2;
@@ -171,7 +165,11 @@ export default function BackgammonGame() {
       <div className="mt-4 flex justify-center gap-4">
         <button
           onClick={() => {
-            setGame(new Game());
+            const initialState = boardStateNodeFromArray([
+              0,2,0,0,0,0,-5,0,-3,0,0,0,5,
+              -5,0,0,0,3,0,5,0,0,0,0,-2,0
+            ], 1, 1);
+            setGameState(initialState);
             setSelectedPoint(null);
             setLegalMoves([]);
           }}
@@ -181,9 +179,15 @@ export default function BackgammonGame() {
         </button>
         <button
           onClick={() => {
-            if (game) {
-              game.rollDice();
-              setGame(new Game(game.position));
+            if (gameState) {
+              const dice1 = Math.floor(Math.random() * 6) + 1;
+              const dice2 = Math.floor(Math.random() * 6) + 1;
+              const newState = boardStateNodeFromArray(
+                gameState.board.points,
+                dice1,
+                dice2
+              );
+              setGameState(newState);
             }
           }}
           className="px-4 py-2 bg-accent text-white rounded-lg hover:bg-accent-dark transition-colors"
