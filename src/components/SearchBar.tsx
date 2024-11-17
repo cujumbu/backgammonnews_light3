@@ -3,7 +3,7 @@ import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface SearchBarProps {
-  onSearch: (query: string) => void;
+  onSearch: string;
   initialQuery?: string;
 }
 
@@ -11,7 +11,6 @@ export default function SearchBar({ onSearch, initialQuery = '' }: SearchBarProp
   const [query, setQuery] = useState(initialQuery);
 
   useEffect(() => {
-    // Update query when URL parameter changes
     const urlParams = new URLSearchParams(window.location.search);
     const searchQuery = urlParams.get('q') || '';
     setQuery(searchQuery);
@@ -19,13 +18,21 @@ export default function SearchBar({ onSearch, initialQuery = '' }: SearchBarProp
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSearch(query);
+    const url = new URL(window.location.href);
+    if (query) {
+      url.searchParams.set('q', query);
+    } else {
+      url.searchParams.delete('q');
+    }
+    window.location.href = url.toString();
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setQuery(e.target.value);
     if (e.target.value === '') {
-      onSearch(''); // Clear search when input is empty
+      const url = new URL(window.location.href);
+      url.searchParams.delete('q');
+      window.location.href = url.toString();
     }
   };
 
@@ -37,7 +44,7 @@ export default function SearchBar({ onSearch, initialQuery = '' }: SearchBarProp
           value={query}
           onChange={handleChange}
           placeholder="Search articles..."
-          className="w-full px-4 py-3 pl-12 bg-white rounded-xl border border-gray-200/50 shadow-sm focus:ring-2 focus:ring-accent focus:border-transparent outline-none transition-all duration-300"
+          className="w-full px-4 py-3 pl-12 bg-white dark:bg-gray-800 rounded-xl border border-gray-200/50 dark:border-gray-700/50 shadow-sm focus:ring-2 focus:ring-accent focus:border-transparent outline-none transition-all duration-300 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
         />
         <MagnifyingGlassIcon className="w-5 h-5 text-gray-400 absolute left-4 top-1/2 transform -translate-y-1/2" />
         <AnimatePresence>
