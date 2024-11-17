@@ -14,15 +14,12 @@ export default defineConfig({
   },
   vite: {
     ssr: {
-      noExternal: ['cheerio']
+      noExternal: ['cheerio', 'parse5']
     },
     build: {
       rollupOptions: {
         external: ['node:https']
       }
-    },
-    optimizeDeps: {
-      include: ['cheerio']
     }
   }
 });
