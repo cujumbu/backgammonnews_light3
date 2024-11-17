@@ -1,12 +1,18 @@
 ---
+interface Props {
+  selectedCategory: string;
+}
+
+const { selectedCategory = 'All' } = Astro.props;
 const categories = ['All', 'USBGF', 'WBGF', 'UKBGF'];
 ---
 
 <div class="flex items-center gap-4 overflow-x-auto py-4 scrollbar-hide">
-  {categories.map((category, index) => (
+  {categories.map((category) => (
     <button
+      data-category={category}
       class={`px-6 py-2.5 rounded-full font-medium text-sm transition-all duration-300 ${
-        index === 0
+        category === selectedCategory
           ? 'bg-accent text-white shadow-lg shadow-accent/20'
           : 'bg-white text-gray-600 hover:bg-accent/10 hover:text-accent'
       }`}
