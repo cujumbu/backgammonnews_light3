@@ -9,3 +9,8 @@ services:
         value: 18.19.0
       - key: PORT
         value: 10000
+    healthCheckPath: /
+    disk:
+      name: tmp
+      mountPath: /tmp
+      sizeGB: 0.5
