@@ -3,6 +3,46 @@ import { Line } from 'react-chartjs-2';
 import { Chart as ChartJS } from 'chart.js/auto';
 import { motion } from 'framer-motion';
 
+interface DiceProps {
+  value: number;
+  isRolling: boolean;
+  onClick: () => void;
+}
+
+const Dice: React.FC<DiceProps> = ({ value, isRolling, onClick }) => {
+  const dots = {
+    1: [[50, 50]],
+    2: [[25, 25], [75, 75]],
+    3: [[25, 25], [50, 50], [75, 75]],
+    4: [[25, 25], [25, 75], [75, 25], [75, 75]],
+    5: [[25, 25], [25, 75], [50, 50], [75, 25], [75, 75]],
+    6: [[25, 25], [25, 50], [25, 75], [75, 25], [75, 50], [75, 75]]
+  };
+
+  return (
+    <motion.button
+      whileHover={{ scale: 1.1 }}
+      whileTap={{ scale: 0.9 }}
+      onClick={onClick}
+      className={`relative w-16 h-16 bg-white dark:bg-gray-700 rounded-xl shadow-lg ${
+        isRolling ? 'animate-spin' : ''
+      }`}
+    >
+      <svg viewBox="0 0 100 100" className="w-full h-full p-2">
+        {dots[value as keyof typeof dots].map(([cx, cy], i) => (
+          <circle
+            key={i}
+            cx={`${cx}%`}
+            cy={`${cy}%`}
+            r="8"
+            className="fill-accent dark:fill-white"
+          />
+        ))}
+      </svg>
+    </motion.button>
+  );
+};
+
 function VirtualDice({ onRoll }: { onRoll: (value: number) => void }) {
   const [value, setValue] = useState(1);
   const [isRolling, setIsRolling] = useState(false);
@@ -11,7 +51,6 @@ function VirtualDice({ onRoll }: { onRoll: (value: number) => void }) {
     if (isRolling) return;
     setIsRolling(true);
     
-    // Animate dice roll
     let rolls = 0;
     const maxRolls = 10;
     const interval = setInterval(() => {
@@ -27,18 +66,7 @@ function VirtualDice({ onRoll }: { onRoll: (value: number) => void }) {
     }, 100);
   };
 
-  return (
-    <motion.button
-      whileHover={{ scale: 1.1 }}
-      whileTap={{ scale: 0.9 }}
-      onClick={handleClick}
-      className={`w-16 h-16 bg-white dark:bg-gray-700 rounded-xl shadow-lg flex items-center justify-center text-2xl font-bold ${
-        isRolling ? 'animate-spin' : ''
-      }`}
-    >
-      {value}
-    </motion.button>
-  );
+  return <Dice value={value} isRolling={isRolling} onClick={handleClick} />;
 }
 
 export default function BackgammonTools() {
