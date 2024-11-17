@@ -8,6 +8,7 @@ import CategoryFilter from '../components/CategoryFilter.astro';
 import SearchBar from '../components/SearchBar';
 import NewsletterSignup from '../components/NewsletterSignup';
 import ShareButtons from '../components/ShareButtons';
+import BackgammonTools from '../components/BackgammonTools';
 
 // Get URL parameters
 const { searchParams } = Astro.url;
@@ -142,6 +143,11 @@ if (searchQuery) {
         </div>
       </div>
     </div>
+
+    <section class="mt-16">
+      <h2 class="text-2xl font-display font-bold mb-8">Backgammon Tools</h2>
+      <BackgammonTools client:load />
+    </section>
   </main>
 </Layout>
 
