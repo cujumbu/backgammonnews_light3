@@ -2,10 +2,48 @@ import React, { useState } from 'react';
 import { Line } from 'react-chartjs-2';
 import { Chart as ChartJS } from 'chart.js/auto';
 import { motion } from 'framer-motion';
-import DiceRoll from 'react-dice-roll';
+
+function VirtualDice({ onRoll }: { onRoll: (value: number) => void }) {
+  const [value, setValue] = useState(1);
+  const [isRolling, setIsRolling] = useState(false);
+
+  const handleClick = () => {
+    if (isRolling) return;
+    setIsRolling(true);
+    
+    // Animate dice roll
+    let rolls = 0;
+    const maxRolls = 10;
+    const interval = setInterval(() => {
+      const newValue = Math.floor(Math.random() * 6) + 1;
+      setValue(newValue);
+      rolls++;
+      
+      if (rolls >= maxRolls) {
+        clearInterval(interval);
+        setIsRolling(false);
+        onRoll(newValue);
+      }
+    }, 100);
+  };
+
+  return (
+    <motion.button
+      whileHover={{ scale: 1.1 }}
+      whileTap={{ scale: 0.9 }}
+      onClick={handleClick}
+      className={`w-16 h-16 bg-white dark:bg-gray-700 rounded-xl shadow-lg flex items-center justify-center text-2xl font-bold ${
+        isRolling ? 'animate-spin' : ''
+      }`}
+    >
+      {value}
+    </motion.button>
+  );
+}
 
 export default function BackgammonTools() {
   const [pipCount, setPipCount] = useState({ player1: 167, player2: 167 });
+  const [diceValues, setDiceValues] = useState([1, 1]);
   const [gameStats, setGameStats] = useState([
     { date: '2024-02-01', rating: 1500 },
     { date: '2024-02-05', rating: 1550 },
@@ -53,11 +91,17 @@ export default function BackgammonTools() {
     }
   };
 
+  const handleDiceRoll = (index: number, value: number) => {
+    const newDiceValues = [...diceValues];
+    newDiceValues[index] = value;
+    setDiceValues(newDiceValues);
+  };
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
       {/* Pip Count Calculator */}
       <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200/50 dark:border-gray-700/50">
-        <h3 className="text-xl font-display font-semibold mb-4">Pip Count Calculator</h3>
+        <h3 className="text-xl font-display font-semibold mb-4 text-gray-900 dark:text-white">Pip Count Calculator</h3>
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -66,7 +110,7 @@ export default function BackgammonTools() {
             <input
               type="number"
               value={pipCount.player1}
-              onChange={(e) => setPipCount({ ...pipCount, player1: parseInt(e.target.value) })}
+              onChange={(e) => setPipCount({ ...pipCount, player1: parseInt(e.target.value) || 0 })}
               className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 focus:ring-2 focus:ring-accent focus:border-transparent"
             />
           </div>
@@ -77,7 +121,7 @@ export default function BackgammonTools() {
             <input
               type="number"
               value={pipCount.player2}
-              onChange={(e) => setPipCount({ ...pipCount, player2: parseInt(e.target.value) })}
+              onChange={(e) => setPipCount({ ...pipCount, player2: parseInt(e.target.value) || 0 })}
               className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 focus:ring-2 focus:ring-accent focus:border-transparent"
             />
           </div>
@@ -91,27 +135,22 @@ export default function BackgammonTools() {
 
       {/* Virtual Dice */}
       <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200/50 dark:border-gray-700/50">
-        <h3 className="text-xl font-display font-semibold mb-4">Virtual Dice</h3>
+        <h3 className="text-xl font-display font-semibold mb-4 text-gray-900 dark:text-white">Virtual Dice</h3>
         <div className="flex justify-center gap-8 py-8">
-          <DiceRoll
-            size={60}
-            triggers={['click']}
-            onRoll={(value) => console.log('Dice 1:', value)}
-          />
-          <DiceRoll
-            size={60}
-            triggers={['click']}
-            onRoll={(value) => console.log('Dice 2:', value)}
-          />
+          <VirtualDice onRoll={(value) => handleDiceRoll(0, value)} />
+          <VirtualDice onRoll={(value) => handleDiceRoll(1, value)} />
         </div>
         <p className="text-center text-sm text-gray-600 dark:text-gray-400">
           Click the dice to roll
         </p>
+        <div className="mt-4 text-center text-sm font-medium text-accent">
+          Current roll: {diceValues[0]} - {diceValues[1]}
+        </div>
       </div>
 
       {/* Rating Progress Chart */}
       <div className="md:col-span-2 bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200/50 dark:border-gray-700/50">
-        <h3 className="text-xl font-display font-semibold mb-4">Rating Progress</h3>
+        <h3 className="text-xl font-display font-semibold mb-4 text-gray-900 dark:text-white">Rating Progress</h3>
         <div className="h-[300px]">
           <Line data={chartData} options={chartOptions} />
         </div>
